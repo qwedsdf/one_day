@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UniRx;
 using Photon.Pun;
 
 public class CardBase : MonoBehaviour, IPunObservable
@@ -9,7 +10,7 @@ public class CardBase : MonoBehaviour, IPunObservable
     [SerializeField]
     private Image _illust;
 
-    public bool IsOpen { private set;  get; }
+    public ReactiveProperty<bool> IsOpen { private set;  get; } = new ReactiveProperty<bool>(false);
 
     public bool IsGot { private set; get; }
 
@@ -19,10 +20,11 @@ public class CardBase : MonoBehaviour, IPunObservable
     void Start()
     {
         Initialize();
+        BindEvent();
     }
 
     protected virtual void Initialize(){
-        IsOpen = false;
+        IsOpen.Value = false;
         IsGot = false;
         Refresh();
     }
@@ -32,17 +34,23 @@ public class CardBase : MonoBehaviour, IPunObservable
     }
 
     protected virtual void Open(){
+        IsOpen.Value = true;
+    }
+
+    protected virtual void OpenProcess(){
         var color = _illust.color;
         color.a = 1;
         _illust.color = color;
-        IsOpen = true;
     }
 
     protected virtual void Close(){
+        IsOpen.Value = false;
+    }
+
+    protected virtual void CloseProcess(){
         var color = _illust.color;
         color.a = 0;
         _illust.color = color;
-        IsOpen = false;
     }
 
     public void SetGetFlg (bool isGet) {
@@ -65,12 +73,24 @@ public class CardBase : MonoBehaviour, IPunObservable
         if (stream.IsWriting)
         {
             Debug.Log($"id：{Id}");
-            stream.SendNext(Id);
+            stream.SendNext(IsOpen.Value);
         }
         // オーナー以外の場合
         else
         {
-            Id = (int)stream.ReceiveNext();
+            IsOpen.Value = (bool)stream.ReceiveNext();
         }
+    }
+
+    private void BindEvent() {
+        IsOpen.Subscribe(isOpen =>{
+            if(isOpen) {
+                OpenProcess();
+                return;
+            }
+
+            CloseProcess();
+
+        }).AddTo(this);
     }
 }

@@ -18,7 +18,7 @@ public class NormalCard : CardBase
 
         OnClickedCard
             .Where(_ => !IsGot)
-            .Where(_ => !IsOpen)
+            .Where(_ => !IsOpen.Value)
             .Subscribe(_ => {
                 Open();
                 _openCardSubject.OnNext(this);   

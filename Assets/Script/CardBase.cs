@@ -81,6 +81,10 @@ public class CardBase : MonoBehaviour, IPunObservable
         }
     }
 
+    public void OnPhotonInstantiate(PhotonMessageInfo info) {
+        
+    }
+
     private void BindEvent() {
         IsOpen.Subscribe(isOpen =>{
             if(isOpen) {

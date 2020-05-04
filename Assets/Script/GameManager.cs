@@ -60,9 +60,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// マッチングが成功した時に呼ばれるコールバック
     /// </summary>
     public override void OnJoinedRoom() {
-        if(PhotonNetwork.IsMasterClient) {
-            CreateCards();
-        }
+        photonView.RPC("CreateCards", RpcTarget.All);
     }
 
 
@@ -168,6 +166,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// <summary>
     /// カードを生成
     /// </summary>
+    [PunRPC]
     private void CreateCards(){
         var cardSprites = Resources.LoadAll("Card/CardSprite",typeof(Sprite));
         

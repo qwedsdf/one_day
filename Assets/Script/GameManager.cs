@@ -60,7 +60,9 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// マッチングが成功した時に呼ばれるコールバック
     /// </summary>
     public override void OnJoinedRoom() {
-        CreateCards();
+        if(PhotonNetwork.IsMasterClient) {
+            CreateCards();
+        }
     }
 
 

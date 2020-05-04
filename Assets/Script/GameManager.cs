@@ -12,8 +12,10 @@ using System.Linq;
 public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 {
     private static readonly int EmptyCardId = -1;
-    private static readonly string CardObjPath = "Card/Card";
     private static readonly int WaitTIme = 500;
+
+    [SerializeField]
+    private GameObject _cardPrefab;
 
     [SerializeField]
     private UserInfoPresenter _playerInfo;
@@ -60,6 +62,13 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// マッチングが成功した時に呼ばれるコールバック
     /// </summary>
     public override void OnJoinedRoom() {
+        if (PhotonNetwork.IsMasterClient) {
+            Create().Forget();
+        }
+    }
+
+    private async UniTask Create() {
+        await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1);
         if (PhotonNetwork.IsMasterClient) {
             photonView.RPC("CreateCards", RpcTarget.All);
         }
@@ -175,7 +184,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         foreach (var (sprite, index) in cardSprites.Select((item, index) => (item, index)))
         {
             for(int f = 0; f < 2; f++){
-                var card = PhotonNetwork.Instantiate(CardObjPath,transform.position, Quaternion.identity);
+                var card = Instantiate(_cardPrefab,transform.position, Quaternion.identity);
                 card.transform.parent = _parentTrans;
                 card.transform.localScale = Vector3.one;
                 var cardInfo = card.GetComponent<NormalCard>();

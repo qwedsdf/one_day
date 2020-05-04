@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
-public class CardBase : MonoBehaviour
+public class CardBase : MonoBehaviour, IPunObservable
 {
     [SerializeField]
     private Image _illust;
@@ -57,5 +58,18 @@ public class CardBase : MonoBehaviour
 
     public void SetIllust(Sprite sp) {
         _illust.sprite = sp;
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
+        // オーナーの場合
+        if (stream.IsWriting)
+        {
+            stream.SendNext(Id);
+        }
+        // オーナー以外の場合
+        else
+        {
+            Id = (int)stream.ReceiveNext();
+        }
     }
 }

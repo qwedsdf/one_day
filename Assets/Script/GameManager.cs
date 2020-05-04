@@ -188,18 +188,6 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
-        var a = new CardBase();
-        // オーナーの場合
-        if (stream.IsWriting)
-        {
-            Debug.Log("request");
-            stream.SendNext(a);
-        }
-        // オーナー以外の場合
-        else
-        {
-            Debug.Log("catch");
-            a = (CardBase)stream.ReceiveNext();
-        }
+        
     }
 }

@@ -95,7 +95,7 @@ MonoBehaviour:
   Group: 0
   prefixField: -1
   Synchronization: 3
-  OwnershipTransfer: 2
+  OwnershipTransfer: 0
   ObservedComponents:
   - {fileID: 2386141078452366138}
   viewIdField: 0

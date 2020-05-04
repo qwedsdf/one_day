@@ -1119,6 +1119,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb98ee3260a4b9544943844cbfa89181, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _cardPrefab: {fileID: 191248245701705499, guid: b61ff60afdfde9f48a1d212d34759581,
+    type: 3}
   _playerInfo: {fileID: 3924546749176342143}
   _enemyInfo: {fileID: 973072765}
   _parentTrans: {fileID: 452400475}

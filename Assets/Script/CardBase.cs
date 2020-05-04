@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UniRx;
 using Photon.Pun;
 
-public class CardBase : MonoBehaviour, IPunObservable
+public class CardBase : MonoBehaviourPun, IPunObservable
 {
     [SerializeField]
     private Image _illust;
@@ -37,6 +37,7 @@ public class CardBase : MonoBehaviour, IPunObservable
         IsOpen.Value = true;
     }
 
+    [PunRPC]
     protected virtual void OpenProcess(){
         var color = _illust.color;
         color.a = 1;
@@ -47,6 +48,7 @@ public class CardBase : MonoBehaviour, IPunObservable
         IsOpen.Value = false;
     }
 
+    [PunRPC]
     protected virtual void CloseProcess(){
         var color = _illust.color;
         color.a = 0;
@@ -88,11 +90,10 @@ public class CardBase : MonoBehaviour, IPunObservable
     private void BindEvent() {
         IsOpen.Subscribe(isOpen =>{
             if(isOpen) {
-                OpenProcess();
+                photonView.RPC("OpenProcess", RpcTarget.All);
                 return;
             }
-
-            CloseProcess();
+            photonView.RPC("CloseProcess", RpcTarget.All);
 
         }).AddTo(this);
     }

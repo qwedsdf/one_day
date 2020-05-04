@@ -72,7 +72,6 @@ public class CardBase : MonoBehaviour, IPunObservable
         // オーナーの場合
         if (stream.IsWriting)
         {
-            Debug.Log($"id：{Id}");
             stream.SendNext(IsOpen.Value);
         }
         // オーナー以外の場合

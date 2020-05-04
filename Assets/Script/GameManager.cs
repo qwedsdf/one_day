@@ -188,6 +188,16 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
-        
+        // オーナーの場合
+        if (stream.IsWriting)
+        {
+            stream.SendNext(_currentUserIndex);
+        }
+        // オーナー以外の場合
+        else
+        {
+            _currentUserIndex = (int)stream.ReceiveNext();
+            Debug.LogError(_currentUserIndex);
+        }
     }
 }

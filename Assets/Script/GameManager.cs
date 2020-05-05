@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private CardBase _firstOpenCard;
     private CardBase _secondCard;
     private UserInfoPresenter _currentUserInfo;
-    private int _currentUserIndex;
+    private ReactiveProperty<int> _currentUserIndex = new ReactiveProperty<int>(0);
     private List<CardBase> _cardList = new List<CardBase>();
 
     private List<UserInfoPresenter> _userList = new List<UserInfoPresenter>();
@@ -85,8 +85,27 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
             _playerInfo,
             _enemyInfo,
         };
-        _currentUserIndex = Random.Range(0,_userList.Count);
-        _currentUserInfo = _userList[_currentUserIndex];
+
+        BindEvent();
+
+        if(PhotonNetwork.IsMasterClient) {
+            LotteryUserTurn();
+        }
+    }
+
+    private void BindEvent() {
+        _currentUserIndex.Subscribe(index => SetUserTurn(index));
+    }
+
+    private void LotteryUserTurn() {
+        _currentUserIndex.Value = Random.Range(0,_userList.Count);
+    }
+
+    private void SetUserTurn(int index) {
+        _userList.ForEach(user => {
+            user.SetActiveMyTurnIcon(false);
+        });
+        _currentUserInfo = _userList[index];
         _currentUserInfo.SetActiveMyTurnIcon(true);
     }
 
@@ -158,11 +177,9 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// ターンを次のメンバーに移動する
     /// </summary>
     private void ChangeNextUser() {
-        _currentUserInfo.SetActiveMyTurnIcon(false);
-        _currentUserIndex++;
-        _currentUserIndex %= _userList.Count;
-        _currentUserInfo = _userList[_currentUserIndex];
-        _currentUserInfo.SetActiveMyTurnIcon(true);
+        var index = _currentUserIndex.Value + 1;
+        index %= _userList.Count;
+        _currentUserIndex.Value = index;
     }
 
     /// <summary>
@@ -204,22 +221,23 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         // オーナーの場合
         if (stream.IsWriting)
         {
+            stream.SendNext(_currentUserIndex);
             var uniqId = GameDealer.Instance.OpenCardIndex;
             if(uniqId < 0) return;
             stream.SendNext(uniqId);
-            stream.SendNext(_currentUserIndex);
+            GameDealer.Instance.SetOpenCardIndex(-1);
         }
         // オーナー以外の場合
         else
         {
+            _currentUserIndex.Value = (int)stream.ReceiveNext();
+
             var uniqId = (int)stream.ReceiveNext();
             var card = _cardList.FirstOrDefault(c => c.UniqId == uniqId);
             if(card != null){
                 NormalCard normal = card as NormalCard;
                 normal.OnNext();   
             }
-
-            _currentUserIndex = (int)stream.ReceiveNext();
         }
     }
 }

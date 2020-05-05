@@ -223,7 +223,6 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         {
             stream.SendNext(_currentUserIndex.Value);
             var uniqId = GameDealer.Instance.OpenCardIndex;
-            if(uniqId < 0) return;
             stream.SendNext(uniqId);
             GameDealer.Instance.SetOpenCardIndex(-1);
         }
@@ -231,8 +230,10 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         else
         {
             _currentUserIndex.Value = (int)stream.ReceiveNext();
-
             var uniqId = (int)stream.ReceiveNext();
+            
+            if(uniqId < 0) return;
+
             var card = _cardList.FirstOrDefault(c => c.UniqId == uniqId);
             if(card != null){
                 NormalCard normal = card as NormalCard;

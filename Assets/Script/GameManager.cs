@@ -94,7 +94,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     private void BindEvent() {
-        _currentUserIndex.Subscribe(index => SetUserTurn(index));
+        _currentUserIndex.Subscribe(index => SetUserTurn(index)).AddTo(this);
     }
 
     private void LotteryUserTurn() {
@@ -221,7 +221,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         // オーナーの場合
         if (stream.IsWriting)
         {
-            stream.SendNext(_currentUserIndex);
+            stream.SendNext(_currentUserIndex.Value);
             var uniqId = GameDealer.Instance.OpenCardIndex;
             if(uniqId < 0) return;
             stream.SendNext(uniqId);

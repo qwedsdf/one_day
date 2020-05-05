@@ -190,6 +190,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
                 var cardInfo = card.GetComponent<NormalCard>();
                 _cardList.Add(cardInfo);
                 cardInfo.Id = index;
+                cardInfo.UniqId = index * 2 + f;
                 cardInfo.SetIllust((Sprite)sprite);
                 cardInfo.OnOpenCard
                     .Subscribe(info => OpenCard(info))
@@ -203,13 +204,22 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         // オーナーの場合
         if (stream.IsWriting)
         {
+            var uniqId = GameDealer.Instance.OpenCardIndex;
+            if(uniqId < 0) return;
+            stream.SendNext(uniqId);
             stream.SendNext(_currentUserIndex);
         }
         // オーナー以外の場合
         else
         {
+            var uniqId = (int)stream.ReceiveNext();
+            var card = _cardList.FirstOrDefault(c => c.UniqId == uniqId);
+            if(card != null){
+                NormalCard normal = card as NormalCard;
+                normal.OnNext();   
+            }
+
             _currentUserIndex = (int)stream.ReceiveNext();
-            Debug.LogError(_currentUserIndex);
         }
     }
 }

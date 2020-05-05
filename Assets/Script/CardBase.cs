@@ -16,6 +16,8 @@ public class CardBase : MonoBehaviour, IPunObservable
 
     public int Id = -1;
 
+    public int UniqId = -1;
+
     // Start is called before the first frame update
     void Start()
     {

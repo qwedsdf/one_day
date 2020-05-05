@@ -20,9 +20,14 @@ public class NormalCard : CardBase
             .Where(_ => !IsGot)
             .Where(_ => !IsOpen.Value)
             .Subscribe(_ => {
+                GameDealer.Instance.SetOpenCardIndex(UniqId);
                 Open();
                 _openCardSubject.OnNext(this);   
             })
             .AddTo(this);
+    }
+
+    public void OnNext() {
+        _selectButton.onClick.Invoke();
     }
 }

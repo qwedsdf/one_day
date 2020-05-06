@@ -8,12 +8,12 @@ public class UserInfoModel : MonoBehaviour
 
     public string Name {private set; get;}
 
-    public int PlayerId {private set; get;}
+    public string UserId {private set; get;}
 
     private static int _currentId = 0;
 
     public UserInfoModel() {
-        PlayerId = _currentId;
+        UserId = _currentId.ToString();
         _currentId++;
     }
 
@@ -31,5 +31,9 @@ public class UserInfoModel : MonoBehaviour
 
     public void SetName(string name){
         Name = name;
+    }
+
+    public void SetUserId(string id) {
+        UserId = id;
     }
 }

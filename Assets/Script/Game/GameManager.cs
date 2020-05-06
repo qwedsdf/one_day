@@ -39,7 +39,8 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private CardBase _firstOpenCard;
     private CardBase _secondCard;
     private UserInfoPresenter _currentUserInfo;
-    private ReactiveProperty<int> _currentUserIndex = new ReactiveProperty<int>(-1);
+    private ReactiveProperty<string> _currentUserId = new ReactiveProperty<string>(string.Empty);
+    private int _currentUserIndex = 0;
     private List<CardBase> _cardList = new List<CardBase>();
 
     private List<UserInfoPresenter> _userList = new List<UserInfoPresenter>();
@@ -87,10 +88,8 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private void SetupPlayerInfo(){
         foreach (var (player, index) in PhotonNetwork.PlayerList.Select((player, index) => (player, index)))
         {
-            if(PhotonNetwork.IsMasterClient){
-                Debug.LogError(player.UserId);
-            }
             if(player.IsLocal){
+                _playerInfo.SetUserId(player.UserId);
                 continue;
             }
             _enemyInfo.SetName(player.NickName);
@@ -113,21 +112,27 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     private void BindEvent() {
-        _currentUserIndex
+        _currentUserId
             .Where(_ => _isMatching)
-            .Subscribe(index => SetUserTurn(index))
+            .Subscribe(SetUserTurn)
             .AddTo(this);
     }
 
     private void LotteryUserTurn() {
-        _currentUserIndex.Value = Random.Range(0,_userList.Count);
+        _currentUserIndex = Random.Range(0,_userList.Count);
+        _currentUserId.Value = _userList[_currentUserIndex].UserId;
     }
 
-    private void SetUserTurn(int index) {
+    private void SetUserTurn(string userId) {
         _userList.ForEach(user => {
             user.SetActiveMyTurnIcon(false);
         });
-        _currentUserInfo = _userList[index];
+        var info = _userList.FirstOrDefault(user => user.UserId == userId);
+        if(info == null) {
+            Debug.LogError($"一致するUserIDがありません。UserId:{userId}");
+            return;
+        }
+        _currentUserInfo = info;
         _currentUserInfo.SetActiveMyTurnIcon(true);
     }
 
@@ -201,9 +206,9 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// ターンを次のメンバーに移動する
     /// </summary>
     private void ChangeNextUser() {
-        var index = _currentUserIndex.Value + 1;
-        index %= _userList.Count;
-        _currentUserIndex.Value = index;
+        _currentUserIndex++;
+        _currentUserIndex %= _userList.Count;
+        _currentUserId.Value = _userList[_currentUserIndex].UserId;
     }
 
     /// <summary>
@@ -245,7 +250,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         // オーナーの場合
         if (stream.IsWriting)
         {
-            stream.SendNext(_currentUserIndex.Value);
+            stream.SendNext(_currentUserId.Value);
             var uniqId = GameDealer.Instance.OpenCardIndex;
             stream.SendNext(uniqId);
             GameDealer.Instance.SetOpenCardIndex(-1);
@@ -253,7 +258,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         // オーナー以外の場合
         else
         {
-            _currentUserIndex.Value = (int)stream.ReceiveNext();
+            _currentUserId.Value = (string)stream.ReceiveNext();
             var uniqId = (int)stream.ReceiveNext();
 
             if(uniqId < 0) return;

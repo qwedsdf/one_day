@@ -72,7 +72,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 
     private void CreateField() {
         if (PhotonNetwork.IsMasterClient) {
-            photonView.RPC("CreateCards", RpcTarget.All);
+            CreateCards();
             LotteryUserTurn();
         }
     }
@@ -232,7 +232,6 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// <summary>
     /// カードを生成
     /// </summary>
-    [PunRPC]
     private void CreateCards(){
         var cardSprites = Resources.LoadAll("Card/CardSprite",typeof(Sprite));
         

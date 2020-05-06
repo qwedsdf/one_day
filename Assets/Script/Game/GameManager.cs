@@ -63,23 +63,31 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// </summary>
     public override void OnJoinedRoom() {
         if (PhotonNetwork.IsMasterClient) {
-            Create().Forget();
+            OnMatch().Forget();
         }
     }
 
-    private async UniTask Create() {
-        await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1);
-        foreach (var player in PhotonNetwork.PlayerList)
-        {
-            if(player.IsLocal){
-                return;
-            }
-            _enemyInfo.SetName(player.NickName);
-        }
+    private void CreateField() {
         if (PhotonNetwork.IsMasterClient) {
             photonView.RPC("CreateCards", RpcTarget.All);
             BindEvent();
             LotteryUserTurn();
+        }
+    }
+
+    private async UniTask OnMatch(){
+        await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1);
+        CreateField();
+        SetupPlayerInfo();
+    }
+
+    private void SetupPlayerInfo(){
+        foreach (var player in PhotonNetwork.PlayerList)
+        {
+            if(player.IsLocal){
+                continue;
+            }
+            _enemyInfo.SetName(player.NickName);
         }
     }
 

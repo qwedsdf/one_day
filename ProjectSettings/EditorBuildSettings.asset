@@ -5,10 +5,22 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/main.unity
-    guid: 15baf21ac5de2b34a86a178cd6a3b32f
   - enabled: 1
+    path: Assets/Scenes/DataScene.unity
+    guid: 6c7168887818c16438810bde34b757d9
+  - enabled: 1
+    path: Assets/Scenes/Title.unity
+    guid: fc1cfc04d6da89b4a96afd54f5c4451e
+  - enabled: 1
+    path: Assets/Scenes/PlayerMake.unity
+    guid: 788964c5f8a11884883e1b15b4814c94
+  - enabled: 1
+    path: Assets/Scenes/Game.unity
+    guid: 15baf21ac5de2b34a86a178cd6a3b32f
+  - enabled: 0
+    path: Assets/Scenes/SampleScene.unity
+    guid: 76fec3e792ed7b148a4c2ced48cda179
+  - enabled: 0
     path: Assets/sekiyu/tubo.unity
     guid: 8ca669f5bd4d06546849642e04fb456b
   - enabled: 0

@@ -69,6 +69,13 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 
     private async UniTask Create() {
         await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1);
+        foreach (var player in PhotonNetwork.PlayerList)
+        {
+            if(player.IsLocal){
+                return;
+            }
+            _enemyInfo.SetName(player.NickName);
+        }
         if (PhotonNetwork.IsMasterClient) {
             photonView.RPC("CreateCards", RpcTarget.All);
             BindEvent();

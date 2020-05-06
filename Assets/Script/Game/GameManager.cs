@@ -57,10 +57,10 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     public override void OnConnectedToMaster() {
         RoomOptions options = new RoomOptions();
         options.PublishUserId = true; // お互いにユーザＩＤが見えるようにする。
-        options.MaxPlayers = 3; // 最大人数もきちんと定義しておく。
-        
+        options.MaxPlayers = 2; // 最大人数もきちんと定義しておく。
+
         // "room"という名前のルームに参加する（ルームが無ければ作成してから参加する）
-        PhotonNetwork.JoinOrCreateRoom("room", new RoomOptions(), TypedLobby.Default);
+        PhotonNetwork.JoinOrCreateRoom("room", options, TypedLobby.Default);
     }
 
     /// <summary>

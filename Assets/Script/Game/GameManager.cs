@@ -42,7 +42,6 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private ReactiveProperty<string> _currentUserId = new ReactiveProperty<string>(string.Empty);
     private int _currentUserIndex = 0;
     private List<CardBase> _cardList = new List<CardBase>();
-
     private List<UserInfoPresenter> _userList = new List<UserInfoPresenter>();
 
     private void Start(){
@@ -125,9 +124,13 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     private void SetUserTurn(string userId) {
+        // タッチ不可に
+        _cover.gameObject.SetActive(true);
+
         _userList.ForEach(user => {
             user.SetActiveMyTurnIcon(false);
         });
+        
         var info = _userList.FirstOrDefault(user => user.UserId == userId);
         if(info == null) {
             Debug.LogError($"一致するUserIDがありません。UserId:{userId}");
@@ -135,6 +138,11 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         }
         _currentUserInfo = info;
         _currentUserInfo.SetActiveMyTurnIcon(true);
+
+        // 自分のターンであれば、カードを選択可能に
+        if(_playerInfo.UserId == _currentUserInfo.UserId) {
+            _cover.gameObject.SetActive(false);
+        }
     }
 
     /// <summary>
@@ -252,23 +260,11 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         if (stream.IsWriting)
         {
             stream.SendNext(_currentUserId.Value);
-            var uniqId = GameDealer.Instance.OpenCardIndex;
-            stream.SendNext(uniqId);
-            GameDealer.Instance.SetOpenCardIndex(-1);
         }
         // オーナー以外の場合
         else
         {
             _currentUserId.Value = (string)stream.ReceiveNext();
-            var uniqId = (int)stream.ReceiveNext();
-
-            if(uniqId < 0) return;
-
-            var card = _cardList.FirstOrDefault(c => c.UniqId == uniqId);
-            if(card != null){
-                NormalCard normal = card as NormalCard;
-                normal.OnNext();   
-            }
         }
     }
 }

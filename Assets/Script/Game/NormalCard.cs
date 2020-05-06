@@ -4,30 +4,35 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using UniRx;
+using Photon.Pun;
 
 public class NormalCard : CardBase
 {
     [SerializeField]
     private Button _selectButton;
     private Subject<NormalCard> _openCardSubject = new Subject<NormalCard>();
-    public IObservable<Unit> OnClickedCard => _selectButton.OnClickAsObservable();
+    private IObservable<Unit> OnClickedCard => _selectButton.OnClickAsObservable();
     public IObservable<NormalCard> OnOpenCard => _openCardSubject.AsObservable();
 
     protected override void Initialize(){
         base.Initialize();
 
+        OnOpenCard.Subscribe(_ => {
+            GameDealer.Instance.SetOpenCardIndex(UniqId);
+            Open();
+            }).AddTo(this);
+
         OnClickedCard
             .Where(_ => !IsGot)
             .Where(_ => !IsOpen.Value)
             .Subscribe(_ => {
-                GameDealer.Instance.SetOpenCardIndex(UniqId);
-                Open();
-                _openCardSubject.OnNext(this);   
+                photonView.RPC("InvokeOpenCardEvent", RpcTarget.All);
             })
             .AddTo(this);
     }
 
-    public void OnNext() {
-        _selectButton.onClick.Invoke();
+    [PunRPC]
+    public void InvokeOpenCardEvent() {
+        _openCardSubject.OnNext(this);
     }
 }

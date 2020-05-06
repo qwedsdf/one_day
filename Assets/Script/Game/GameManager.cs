@@ -71,6 +71,8 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1);
         if (PhotonNetwork.IsMasterClient) {
             photonView.RPC("CreateCards", RpcTarget.All);
+            BindEvent();
+            LotteryUserTurn();
         }
     }
 
@@ -80,17 +82,11 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// 初期処理
     /// </summary>
     private void Initialize() {
-        SetDummyPlayerData();
-        _userList = new List<UserInfoPresenter>() {
-            _playerInfo,
-            _enemyInfo,
-        };
-
-        BindEvent();
-
-        if(PhotonNetwork.IsMasterClient) {
-            LotteryUserTurn();
-        }
+        SetUserData();
+        // _userList = new List<UserInfoPresenter>() {
+        //     _playerInfo,
+        //     _enemyInfo,
+        // };
     }
 
     private void BindEvent() {
@@ -112,9 +108,11 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// <summary>
     /// ダミー用ユーザーデータを設定
     /// </summary>
-    private void SetDummyPlayerData() {
-        _playerInfo.SetUserInfo("卍太郎",0);
-        _enemyInfo.SetUserInfo("カニ太郎",0);
+    private void SetUserData() {
+        var key = GameDataManager.Instance.GameDataKey;
+        var json = PlayerPrefs.GetString(key);
+        var userData = JsonUtility.FromJson<UserDataParamater>(json);
+        _playerInfo.SetName(userData.Name);
     }
 
     /// <summary>
@@ -231,7 +229,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         {
             _currentUserIndex.Value = (int)stream.ReceiveNext();
             var uniqId = (int)stream.ReceiveNext();
-            
+
             if(uniqId < 0) return;
 
             var card = _cardList.FirstOrDefault(c => c.UniqId == uniqId);

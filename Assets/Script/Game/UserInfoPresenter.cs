@@ -8,6 +8,8 @@ public class UserInfoPresenter : MonoBehaviour
     [SerializeField]
     private UserInfoView _view;
 
+    public string UserId => _model.UserId;
+
     private void Initialize(){
         
     }
@@ -34,5 +36,9 @@ public class UserInfoPresenter : MonoBehaviour
 
     public void SetActiveMyTurnIcon(bool isActive){
         _view.SetActiveMyTurnIcon(isActive);
+    }
+
+    public void SetUserId (string id) {
+        _model.SetUserId(id);
     }
 }

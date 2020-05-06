@@ -35,6 +35,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     [SerializeField]
     private Image _cover;
     private bool _isOpenedFirstCard = false;
+    private bool _isMatching = false;
     private CardBase _firstOpenCard;
     private CardBase _secondCard;
     private UserInfoPresenter _currentUserInfo;
@@ -45,7 +46,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 
     private void Start(){
         Initialize();
-        
+        BindEvent();
         // PhotonServerSettingsに設定した内容を使ってマスターサーバーへ接続する
         PhotonNetwork.ConnectUsingSettings();
     }
@@ -70,20 +71,23 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private void CreateField() {
         if (PhotonNetwork.IsMasterClient) {
             photonView.RPC("CreateCards", RpcTarget.All);
-            BindEvent();
             LotteryUserTurn();
         }
     }
 
     private async UniTask OnMatch(){
         await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1);
+        _isMatching = true;
+        Debug.Log("saf");
         CreateField();
         SetupPlayerInfo();
+        Debug.Log(PhotonNetwork.PlayerList.Length);
     }
 
     private void SetupPlayerInfo(){
         foreach (var player in PhotonNetwork.PlayerList)
         {
+            Debug.Log(player.NickName);
             if(player.IsLocal){
                 continue;
             }
@@ -98,6 +102,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// </summary>
     private void Initialize() {
         SetUserData();
+        _isMatching = false;
         // _userList = new List<UserInfoPresenter>() {
         //     _playerInfo,
         //     _enemyInfo,
@@ -105,7 +110,10 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     private void BindEvent() {
-        _currentUserIndex.Subscribe(index => SetUserTurn(index)).AddTo(this);
+        _currentUserIndex
+            .Where(_ => _isMatching)
+            .Subscribe(index => SetUserTurn(index))
+            .AddTo(this);
     }
 
     private void LotteryUserTurn() {

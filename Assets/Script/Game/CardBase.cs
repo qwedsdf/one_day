@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UniRx;
 using Photon.Pun;
 
-public class CardBase : MonoBehaviourPunCallbacks, IPunObservable
+public class CardBase : MonoBehaviour, IPunObservable
 {
     [SerializeField]
     private Image _illust;

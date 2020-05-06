@@ -72,7 +72,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 
     private void CreateField() {
         if (PhotonNetwork.IsMasterClient) {
-            CreateCards();
+            photonView.RPC("CreateCards", RpcTarget.All);
             LotteryUserTurn();
         }
     }
@@ -116,6 +116,8 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
             .Where(_ => _isMatching)
             .Subscribe(SetUserTurn)
             .AddTo(this);
+
+        GameDealer.Instance.OnSelectCard.Subscribe(uniqId => photonView.RPC("OpenCardRPC", RpcTarget.All,uniqId));
     }
 
     private void LotteryUserTurn() {
@@ -232,40 +234,34 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// <summary>
     /// カードを生成
     /// </summary>
+    [PunRPC]
     private void CreateCards(){
         var cardSprites = Resources.LoadAll("Card/CardSprite",typeof(Sprite));
         
         foreach (var (sprite, index) in cardSprites.Select((item, index) => (item, index)))
         {
             for(int f = 0; f < 2; f++){
-                var card = PhotonNetwork.Instantiate("Card/Card",transform.position, Quaternion.identity);
-                var cardInfo = card.GetComponent<NormalCard>();
-                _cardList.Add(cardInfo);
-            }
-
-        }
-
-        photonView.RPC("SetupCard", RpcTarget.All);        
-    }
-
-    [PunRPC]
-    private void SetupCard() {
-        var cardSprites = Resources.LoadAll("Card/CardSprite",typeof(Sprite));
-        foreach (var (sprite, index) in cardSprites.Select((item, index) => (item, index)))
-        {
-            for(int f = 0; f < 2; f++){
-                var card = _cardList[index * 2 + f];
+                var card = Instantiate(_cardPrefab,transform.position, Quaternion.identity);
                 card.transform.parent = _parentTrans;
                 card.transform.localScale = Vector3.one;
-                card.Id = index;
-                card.UniqId = index * 2 + f;
-                card.SetIllust((Sprite)sprite);
-                var normal = (NormalCard)card;
-                normal.OnOpenCard
+                var cardInfo = card.GetComponent<NormalCard>();
+                _cardList.Add(cardInfo);
+                cardInfo.Id = index;
+                cardInfo.UniqId = index * 2 + f;
+                cardInfo.SetIllust((Sprite)sprite);
+                cardInfo.OnOpenCard
                     .Subscribe(info => OpenCard(info))
                     .AddTo(this);
             }
+
         }
+    }
+
+    [PunRPC]
+    private void OpenCardRPC(int uniqId){
+        var selectCard = _cardList.FirstOrDefault(card => card.UniqId == uniqId);
+        NormalCard normal = selectCard as NormalCard;
+        normal.OnNext();
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {

@@ -115,6 +115,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _illust: {fileID: 4738989389461198687}
   Id: -1
+  UniqId: -1
   _selectButton: {fileID: 3673695261041197250}
 --- !u!114 &3673695261041197250
 MonoBehaviour:

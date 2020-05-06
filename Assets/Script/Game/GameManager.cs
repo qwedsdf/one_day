@@ -93,6 +93,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
                 continue;
             }
             _enemyInfo.SetName(player.NickName);
+            _enemyInfo.SetUserId(player.UserId);
         }
 
         _userList = new List<UserInfoPresenter>() {

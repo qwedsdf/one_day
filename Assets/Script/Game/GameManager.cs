@@ -55,6 +55,10 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// マスターサーバーへの接続が成功した時に呼ばれるコールバック
     /// </summary>
     public override void OnConnectedToMaster() {
+        RoomOptions options = new RoomOptions();
+        options.PublishUserId = true; // お互いにユーザＩＤが見えるようにする。
+        options.MaxPlayers = 3; // 最大人数もきちんと定義しておく。
+        
         // "room"という名前のルームに参加する（ルームが無ければ作成してから参加する）
         PhotonNetwork.JoinOrCreateRoom("room", new RoomOptions(), TypedLobby.Default);
     }
@@ -81,9 +85,11 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     private void SetupPlayerInfo(){
-        foreach (var player in PhotonNetwork.PlayerList)
+        foreach (var (player, index) in PhotonNetwork.PlayerList.Select((player, index) => (player, index)))
         {
-            Debug.Log(player.NickName);
+            if(PhotonNetwork.IsMasterClient){
+                Debug.LogError(player.UserId);
+            }
             if(player.IsLocal){
                 continue;
             }

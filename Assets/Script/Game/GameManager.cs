@@ -39,7 +39,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private CardBase _firstOpenCard;
     private CardBase _secondCard;
     private UserInfoPresenter _currentUserInfo;
-    private ReactiveProperty<int> _currentUserIndex = new ReactiveProperty<int>(0);
+    private ReactiveProperty<int> _currentUserIndex = new ReactiveProperty<int>(-1);
     private List<CardBase> _cardList = new List<CardBase>();
 
     private List<UserInfoPresenter> _userList = new List<UserInfoPresenter>();
@@ -63,9 +63,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// マッチングが成功した時に呼ばれるコールバック
     /// </summary>
     public override void OnJoinedRoom() {
-        if (PhotonNetwork.IsMasterClient) {
-            OnMatch().Forget();
-        }
+        OnMatch().Forget();
     }
 
     private void CreateField() {
@@ -78,10 +76,8 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private async UniTask OnMatch(){
         await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1);
         _isMatching = true;
-        Debug.Log("saf");
-        CreateField();
         SetupPlayerInfo();
-        Debug.Log(PhotonNetwork.PlayerList.Length);
+        CreateField();
     }
 
     private void SetupPlayerInfo(){
@@ -93,6 +89,11 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
             }
             _enemyInfo.SetName(player.NickName);
         }
+
+        _userList = new List<UserInfoPresenter>() {
+            _playerInfo,
+            _enemyInfo,
+        };
     }
 
 
@@ -103,10 +104,6 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private void Initialize() {
         SetUserData();
         _isMatching = false;
-        // _userList = new List<UserInfoPresenter>() {
-        //     _playerInfo,
-        //     _enemyInfo,
-        // };
     }
 
     private void BindEvent() {
@@ -129,7 +126,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     /// <summary>
-    /// ダミー用ユーザーデータを設定
+    /// プレイヤーデータの表示
     /// </summary>
     private void SetUserData() {
         var key = GameDataManager.Instance.GameDataKey;

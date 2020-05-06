@@ -39,6 +39,9 @@ MonoBehaviour:
   - CreateCards
   - CloseProcess
   - OpenProcess
+  - InvokeOpenCardEvent
+  - SetupCard
+  - OpenCardRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

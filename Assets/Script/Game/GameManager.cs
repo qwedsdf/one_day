@@ -73,6 +73,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private void CreateField() {
         if (PhotonNetwork.IsMasterClient) {
             photonView.RPC("CreateCards", RpcTarget.All);
+            CardShuffle();
             LotteryUserTurn();
         }
     }
@@ -255,6 +256,26 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
             }
 
         }
+    }
+
+    private void CardShuffle(){
+        for(int i = 0; i < 100; i++){
+            foreach(var (card, index) in _cardList.Select((card,index) => (card,index))) {
+                int sibIndex = Random.Range(0,_cardList.Count);
+
+                object[] param = new object[]{
+                    index,
+                    sibIndex,
+                };
+
+                photonView.RPC("SetSiblingIndex", RpcTarget.All,param);
+            }
+        }
+    }
+
+    [PunRPC]
+    private void SetSiblingIndex(int index,int sibIndex){
+        _cardList[index].transform.SetSiblingIndex(sibIndex);
     }
 
     [PunRPC]

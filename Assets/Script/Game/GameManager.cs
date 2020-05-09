@@ -198,11 +198,17 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private void LotteryUserTurn() {
         _currentUserIndex = Random.Range(0,_userList.Count);
         photonView.RPC(nameof(SetCurrentUserId), RpcTarget.All,_userList[_currentUserIndex].UserId);
+        photonView.RPC(nameof(SetCurrentUserIndex), RpcTarget.Others,_currentUserIndex);
     }
 
     [PunRPC]
     private void SetCurrentUserId(string id) {
         _currentUserId.Value = id;
+    }
+
+    [PunRPC]
+    private void SetCurrentUserIndex(int index) {
+        _currentUserIndex = index;
     }
 
     private void SetUserTurn(string userId) {

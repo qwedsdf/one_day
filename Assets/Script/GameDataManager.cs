@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class UserDataParamater {
-    public string Name;
+    public string Name = string.Empty;
 }
 
 public class GameDataManager : SingletonMonoBehaviour<GameDataManager>

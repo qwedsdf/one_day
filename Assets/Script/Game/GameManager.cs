@@ -9,6 +9,12 @@ using System.Threading.Tasks;
 using UnityEngine.UI;
 using System.Linq;
 
+public enum BattleResult {
+    Win,
+    Lose,
+    Draw,
+}
+
 public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 {
     private static readonly int EmptyCardId = -1;
@@ -31,6 +37,9 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 
     [SerializeField]
     private Image _notMatchImage;
+
+    [SerializeField]
+    private Text _resultText;
     
     [SerializeField]
     private Image _cover;
@@ -67,7 +76,13 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// マッチングが成功した時に呼ばれるコールバック
     /// </summary>
     public override void OnJoinedRoom() {
-        OnMatch().Forget();
+        MainLoop().Forget();
+    }
+
+    private async UniTask MainLoop() {
+        await OnMatch();
+        await OnBattle();
+        OnResult();
     }
 
     private void CreateField() {
@@ -83,6 +98,45 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         _isMatching = true;
         SetupPlayerInfo();
         CreateField();
+    }
+
+    private async UniTask OnBattle() {
+       await UniTask.WaitWhile(() => _cardList.Any(card => !card.IsGot));
+    }
+
+    private void OnResult() {
+        var result = GetResult();
+        ResultProcess(result);
+    }
+
+    private void ResultProcess(BattleResult result){
+        if(result == BattleResult.Win) {
+            _resultText.text = "You Win";
+            return;
+        }
+
+        if(result == BattleResult.Lose) {
+            _resultText.text = "You Lose";
+            return;
+        }
+
+        _resultText.text = "Drow";
+
+    }
+
+    private BattleResult GetResult() {
+        var player = _playerInfo.Point;
+        var enemy = _enemyInfo.Point;
+
+        if(player > enemy) {
+            return BattleResult.Win;
+        }
+
+        if(enemy > player) {
+            return BattleResult.Lose;
+        }
+
+        return BattleResult.Draw;
     }
 
     private void SetupPlayerInfo(){

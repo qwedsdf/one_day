@@ -29,7 +29,7 @@ public class TitleManager : MonoBehaviour
         var key = GameDataManager.Instance.GameDataKey;
         var json = PlayerPrefs.GetString(key);
         var data = JsonUtility.FromJson<UserDataParamater>(json);
-        _inputName.text = data.Name;
+        _inputName.text = data?.Name;
     }
 
     private void BindEvent() {

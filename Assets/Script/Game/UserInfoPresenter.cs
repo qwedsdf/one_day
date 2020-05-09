@@ -10,6 +10,8 @@ public class UserInfoPresenter : MonoBehaviour
 
     public string UserId => _model.UserId;
 
+    public int Point => _model.Point;
+
     private void Initialize(){
         
     }

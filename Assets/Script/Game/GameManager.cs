@@ -111,6 +111,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     private async UniTask OnBattle() {
+        await UniTask.WaitWhile(() => _state != State.Battle);
         await UniTask.WaitWhile(() => _cardList.Any(card => !card.IsGot) || _state == State.CreateField);
     }
 
@@ -160,10 +161,12 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         {
             if(player.IsLocal){
                 _playerInfo.SetUserId(player.UserId);
+                _playerInfo.SetPoint(0);
                 continue;
             }
             _enemyInfo.SetName(player.NickName);
             _enemyInfo.SetUserId(player.UserId);
+            _enemyInfo.SetPoint(0);
         }
 
         _userList = new List<UserInfoPresenter>() {
@@ -194,7 +197,12 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 
     private void LotteryUserTurn() {
         _currentUserIndex = Random.Range(0,_userList.Count);
-        _currentUserId.Value = _userList[_currentUserIndex].UserId;
+        photonView.RPC(nameof(SetCurrentUserId), RpcTarget.All,_userList[_currentUserIndex].UserId);
+    }
+
+    [PunRPC]
+    private void SetCurrentUserId(string id) {
+        _currentUserId.Value = id;
     }
 
     private void SetUserTurn(string userId) {
@@ -356,16 +364,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         normal.OnNext();
     }
 
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info) {
-        // オーナーの場合
-        if (stream.IsWriting)
-        {
-            stream.SendNext(_currentUserId.Value);
-        }
-        // オーナー以外の場合
-        else
-        {
-            _currentUserId.Value = (string)stream.ReceiveNext();
-        }
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info){
+
     }
 }

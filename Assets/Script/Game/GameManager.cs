@@ -189,7 +189,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
             .Subscribe(SetUserTurn)
             .AddTo(this);
 
-        GameDealer.Instance.OnSelectCard.Subscribe(uniqId => photonView.RPC("OpenCardRPC", RpcTarget.All,uniqId));
+        GameDealer.Instance.OnSelectCard.Subscribe(uniqId => photonView.RPC(nameof(OpenCardRPC), RpcTarget.All,uniqId));
     }
 
     private void LotteryUserTurn() {

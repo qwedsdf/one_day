@@ -15,6 +15,13 @@ public enum BattleResult {
     Draw,
 }
 
+public enum State {
+    WaitMatch,
+    CreateField,
+    Battle,
+    Result,
+}
+
 public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 {
     private static readonly int EmptyCardId = -1;
@@ -52,6 +59,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private int _currentUserIndex = 0;
     private List<CardBase> _cardList = new List<CardBase>();
     private List<UserInfoPresenter> _userList = new List<UserInfoPresenter>();
+    private State _state;
 
     private void Start(){
         Initialize();
@@ -87,24 +95,32 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 
     private void CreateField() {
         if (PhotonNetwork.IsMasterClient) {
-            photonView.RPC("CreateCards", RpcTarget.All);
+            photonView.RPC(nameof(CreateCards), RpcTarget.All);
             CardShuffle();
             LotteryUserTurn();
+            photonView.RPC(nameof(SetState), RpcTarget.All,State.Battle);
         }
     }
 
     private async UniTask OnMatch(){
         await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1);
+        SetState(State.CreateField);
         _isMatching = true;
         SetupPlayerInfo();
         CreateField();
     }
 
     private async UniTask OnBattle() {
-       await UniTask.WaitWhile(() => _cardList.Any(card => !card.IsGot));
+        await UniTask.WaitWhile(() => _cardList.Any(card => !card.IsGot) || _state == State.CreateField);
+    }
+
+    [PunRPC]
+    private void SetState(State state) {
+        _state = state;
     }
 
     private void OnResult() {
+        _state = State.Result;
         var result = GetResult();
         ResultProcess(result);
     }
@@ -163,6 +179,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// </summary>
     private void Initialize() {
         SetUserData();
+        _state = State.WaitMatch;
         _isMatching = false;
     }
 
@@ -322,7 +339,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
                     sibIndex,
                 };
 
-                photonView.RPC("SetSiblingIndex", RpcTarget.All,param);
+                photonView.RPC(nameof(SetSiblingIndex), RpcTarget.All,param);
             }
         }
     }

@@ -59,6 +59,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private int _currentUserIndex = 0;
     private List<CardBase> _cardList = new List<CardBase>();
     private List<UserInfoPresenter> _userList = new List<UserInfoPresenter>();
+    private List<string> _userIdList = new List<string>();
     private State _state;
 
     private void Start(){
@@ -159,6 +160,8 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private void SetupPlayerInfo(){
         foreach (var (player, index) in PhotonNetwork.PlayerList.Select((player, index) => (player, index)))
         {
+            photonView.RPC(nameof(SetUserIdList), RpcTarget.All,player.UserId);
+
             if(player.IsLocal){
                 _playerInfo.SetUserId(player.UserId);
                 _playerInfo.SetPoint(0);
@@ -197,8 +200,13 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
 
     private void LotteryUserTurn() {
         _currentUserIndex = Random.Range(0,_userList.Count);
-        photonView.RPC(nameof(SetCurrentUserId), RpcTarget.All,_userList[_currentUserIndex].UserId);
         photonView.RPC(nameof(SetCurrentUserIndex), RpcTarget.Others,_currentUserIndex);
+        photonView.RPC(nameof(SetCurrentUserId), RpcTarget.All,_userIdList[_currentUserIndex]);
+    }
+
+    [PunRPC]
+    private void SetUserIdList(string id){
+        _userIdList.Add(id);
     }
 
     [PunRPC]
@@ -212,6 +220,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     private void SetUserTurn(string userId) {
+        Debug.Log("ターン切り替え");
         // タッチ不可に
         _cover.gameObject.SetActive(true);
 
@@ -255,7 +264,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
         }
 
         _secondCard = card;
-
+        
         // 違うカードであれば
         if(_firstOpenCard.Id != _secondCard.Id) {
             NotMatchProcess().Forget();
@@ -303,9 +312,10 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// ターンを次のメンバーに移動する
     /// </summary>
     private void ChangeNextUser() {
+        var id = _currentUserId.Value;
         _currentUserIndex++;
-        _currentUserIndex %= _userList.Count;
-        _currentUserId.Value = _userList[_currentUserIndex].UserId;
+        _currentUserIndex %= _userIdList.Count;
+        _currentUserId.Value = _userIdList[_currentUserIndex];
     }
 
     /// <summary>

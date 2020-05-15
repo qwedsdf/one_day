@@ -279,6 +279,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// カードが一致しなかった時の処理
     /// </summary>
     private async UniTask NotMatchProcess(){
+        await UniTask.Delay(700);
         await OpenTwoCardEffect(false);
         ChangeNextUser();
         Reset();

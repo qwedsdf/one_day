@@ -61,12 +61,37 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private List<UserInfoPresenter> _userList = new List<UserInfoPresenter>();
     private List<string> _userIdList = new List<string>();
     private State _state;
+    private bool _isInitialize = false;
+    private bool _isOtherReady = false;
 
     private void Start(){
         Initialize();
         BindEvent();
         // PhotonServerSettingsに設定した内容を使ってマスターサーバーへ接続する
         PhotonNetwork.ConnectUsingSettings();
+        _isInitialize = true;
+        if(!PhotonNetwork.IsMasterClient) {
+            photonView.RPC(nameof(SetOtherReady), RpcTarget.All,true);
+        }
+    }
+
+    /// <summary>
+    /// 初期処理
+    /// </summary>
+    private void Initialize() {
+        SetUserData();
+        _state = State.WaitMatch;
+        _isMatching = false;
+        _isInitialize = true;
+    }
+
+    [PunRPC]
+    private void SetOtherReady(bool isReady){
+        _isOtherReady = isReady;
+    }
+
+    private bool IsAllReady(){
+        return _isOtherReady && _isInitialize;
     }
 
     /// <summary>
@@ -104,7 +129,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     private async UniTask OnMatch(){
-        await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1);
+        await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1 || IsAllReady());
         SetState(State.CreateField);
         _isMatching = true;
         SetupPlayerInfo();
@@ -160,7 +185,9 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     private void SetupPlayerInfo(){
         foreach (var (player, index) in PhotonNetwork.PlayerList.Select((player, index) => (player, index)))
         {
-            photonView.RPC(nameof(SetUserIdList), RpcTarget.All,player.UserId);
+            if (PhotonNetwork.IsMasterClient) {
+                photonView.RPC(nameof(SetUserIdList), RpcTarget.All,player.UserId);
+            }
 
             if(player.IsLocal){
                 _playerInfo.SetUserId(player.UserId);
@@ -176,17 +203,6 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
             _playerInfo,
             _enemyInfo,
         };
-    }
-
-
-
-    /// <summary>
-    /// 初期処理
-    /// </summary>
-    private void Initialize() {
-        SetUserData();
-        _state = State.WaitMatch;
-        _isMatching = false;
     }
 
     private void BindEvent() {
@@ -345,6 +361,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
                 _cardList.Add(cardInfo);
                 cardInfo.Id = index;
                 cardInfo.UniqId = index * 2 + f;
+                cardInfo.SetPoint(index);
                 cardInfo.SetIllust((Sprite)sprite);
                 cardInfo.OnOpenCard
                     .Subscribe(info => OpenCard(info))

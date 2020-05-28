@@ -10,6 +10,9 @@ public class CardBase : MonoBehaviour, IPunObservable
     [SerializeField]
     private Image _illust;
 
+    [SerializeField]
+    private Text _pointText;
+
     public ReactiveProperty<bool> IsOpen { private set;  get; } = new ReactiveProperty<bool>(false);
 
     public bool IsGot { private set; get; }
@@ -17,6 +20,8 @@ public class CardBase : MonoBehaviour, IPunObservable
     public int Id = -1;
 
     public int UniqId = -1;
+
+    public ReactiveProperty<int> Point { private set; get; } = new ReactiveProperty<int>(0);
 
     // Start is called before the first frame update
     void Start()
@@ -43,6 +48,10 @@ public class CardBase : MonoBehaviour, IPunObservable
         var color = _illust.color;
         color.a = 1;
         _illust.color = color;
+
+        var textColor = _pointText.color;
+        textColor.a = 1;
+        _pointText.color = textColor;
     }
 
     protected virtual void Close(){
@@ -53,10 +62,22 @@ public class CardBase : MonoBehaviour, IPunObservable
         var color = _illust.color;
         color.a = 0;
         _illust.color = color;
+
+        var textColor = _pointText.color;
+        textColor.a = 0;
+        _pointText.color = textColor;
     }
 
     public void SetGetFlg (bool isGet) {
         IsGot = isGet;
+    }
+
+    public void SetPoint(int point) {
+        Point.Value = point;
+    }
+
+    private void SetPointText(int point) {
+        _pointText.text = point.ToString();
     }
 
     public void ChangeEnd() {
@@ -88,6 +109,8 @@ public class CardBase : MonoBehaviour, IPunObservable
     }
 
     private void BindEvent() {
+        Point.Subscribe(SetPointText).AddTo(this);
+
         IsOpen.Subscribe(isOpen =>{
             if(isOpen) {
                 OpenProcess();

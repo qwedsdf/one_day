@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UniRx.Async;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -17,6 +18,6 @@ public class GameDataManager : SingletonMonoBehaviour<GameDataManager>
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void LoadScene(){
-        SceneManager.LoadScene("DataScene", LoadSceneMode.Additive);
+        SceneManager.LoadScene("DataScene",LoadSceneMode.Additive);
     }
 }

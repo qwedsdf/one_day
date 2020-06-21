@@ -5,10 +5,10 @@ using UnityEngine.UI;
 using UniRx;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
+using UniRx.Async;
 
-public class TitleManager : MonoBehaviour
+public class MakeUserManager : MonoBehaviour
 {
-
     [SerializeField]
     private InputField _inputName;
 
@@ -26,7 +26,7 @@ public class TitleManager : MonoBehaviour
     }
 
     private void LoadUserData(){
-        var key = GameDataManager.Instance.GameDataKey;
+        var key = UserData.USER_ID_KEY;
         var json = PlayerPrefs.GetString(key);
         var data = JsonUtility.FromJson<UserDataParamater>(json);
         _inputName.text = data?.Name;
@@ -35,21 +35,22 @@ public class TitleManager : MonoBehaviour
     private void BindEvent() {
         _matchingButton.OnClickAsObservable()
             .Subscribe(_ => { 
-                SetUserData();
-                SceneManager.LoadScene("Game");
+                SetUserData().Forget();
             })
             .AddTo(this);
     }
 
-    private void SetUserData () {
-        var userData = new UserDataParamater() {
+    private async UniTask SetUserData() {
+        var userData = new UserData() {
             Name = _inputName.text,
         };
+
+        await AppApi.CreateUserData(userData);
         var key = GameDataManager.Instance.GameDataKey;
         var json = JsonUtility.ToJson(userData);
         PlayerPrefs.SetString(key,json);
         PlayerPrefs.Save();
-
-        PhotonNetwork.NickName = userData.Name;
+        RunTimeData.PlayerData = userData;
+        SceneLoadManager.Instance.LoadScene(Scenes.Game);
     }
 }

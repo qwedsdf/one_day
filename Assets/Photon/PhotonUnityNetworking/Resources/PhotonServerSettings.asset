@@ -46,6 +46,8 @@ MonoBehaviour:
   - SetState
   - SetCurrentUserId
   - SetCurrentUserIndex
+  - SetUserIdList
+  - SetOtherReady
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

@@ -129,7 +129,7 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     }
 
     private async UniTask OnMatch(){
-        await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1 || IsAllReady());
+        await UniTask.WaitWhile(() => PhotonNetwork.PlayerList.Length == 1 || !IsAllReady());
         SetState(State.CreateField);
         _isMatching = true;
         SetupPlayerInfo();
@@ -262,10 +262,8 @@ public class GameManager : MonoBehaviourPunCallbacks,IPunObservable
     /// プレイヤーデータの表示
     /// </summary>
     private void SetUserData() {
-        var key = GameDataManager.Instance.GameDataKey;
-        var json = PlayerPrefs.GetString(key);
-        var userData = JsonUtility.FromJson<UserDataParamater>(json);
-        _playerInfo.SetName(userData.Name);
+        PhotonNetwork.NickName = RunTimeData.PlayerData.Name;
+        _playerInfo.SetName(RunTimeData.PlayerData.Name);
     }
 
     /// <summary>
